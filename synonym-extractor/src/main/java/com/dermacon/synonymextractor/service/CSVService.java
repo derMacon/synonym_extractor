@@ -16,8 +16,6 @@ import java.util.List;
 @Slf4j
 public class CSVService {
 
-    private final static String ESCAPED_COMMA = "\",\"";
-
     @SneakyThrows
     public String read(String inputPath) {
         log.info("input path: {}", inputPath);
@@ -42,28 +40,28 @@ public class CSVService {
     }
 
     private String generateCsvContent(MappingSynToLoc elem) {
-        StringBuilder strb = new StringBuilder();
 
         // synonyms
+        StringBuilder synonyms = new StringBuilder();
         Iterator<String> synIt = elem.getSynonyms().iterator();
         while (synIt.hasNext()) {
-            strb.append(synIt.next());
+            synonyms.append(synIt.next());
             if (synIt.hasNext()) {
-                strb.append(ESCAPED_COMMA);
+                synonyms.append(",");
             }
         }
 
         // location mapping
+        StringBuilder loc = new StringBuilder();
         Iterator<LocationMapping> locIt = elem.getLocationMapping().iterator();
         while (locIt.hasNext()) {
-            strb.append(locIt.next().toString());
+            loc.append(locIt.next().toString());
             if (locIt.hasNext()) {
-                strb.append(ESCAPED_COMMA);
+                loc.append(",");
             }
         }
 
-        return strb.toString();
+        return "\"" + synonyms.toString() + "\",\"" + loc.toString() + "\"";
     }
-
 
 }
