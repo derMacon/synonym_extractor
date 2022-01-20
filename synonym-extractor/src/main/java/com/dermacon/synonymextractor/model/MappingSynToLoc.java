@@ -9,12 +9,12 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
-public class MappingSynToId {
+public class MappingSynToLoc {
     private Set<String> synonyms;
-    private Set<Integer> ids;
+    private Set<LocationMapping> locationMapping;
 
-    public void add(MappingIdToSyn elem) {
+    public void add(MappingLocToSyn elem) {
         synonyms.addAll(elem.getSynonyms());
-        ids.add(elem.getId());
+        locationMapping.add(elem.getLocationMapping());
     }
 }

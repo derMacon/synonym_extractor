@@ -1,7 +1,8 @@
 package com.dermacon.synonymextractor.service;
 
-import com.dermacon.synonymextractor.model.MappingIdToSyn;
-import com.dermacon.synonymextractor.model.MappingSynToId;
+import com.dermacon.synonymextractor.model.LocationMapping;
+import com.dermacon.synonymextractor.model.MappingLocToSyn;
+import com.dermacon.synonymextractor.model.MappingSynToLoc;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ public class SynonymService {
 
 
     @Autowired
-    private CSVReaderService readerService;
+    private CSVService readerService;
 
     @Autowired
     private ExtractorService extractorService;
@@ -24,36 +25,36 @@ public class SynonymService {
     @Autowired
     private ApiService apiService;
 
-    public void findSynonyms(String data, String outputPath) {
+    public List<MappingSynToLoc> findSynonyms(String data) {
         List<String> words = extractorService.extractWords(data);
-        List<MappingIdToSyn> synonyms = createMap(words);
-        List<MappingSynToId> grouped = groupDuplicates(synonyms);
-
+        List<MappingLocToSyn> synonyms = createMap(words);
+        return groupDuplicates(synonyms);
     }
 
-    private List<MappingIdToSyn> createMap(List<String> words) {
-        List<MappingIdToSyn> apiResponses = new ArrayList<>();
+    private List<MappingLocToSyn> createMap(List<String> words) {
+        List<MappingLocToSyn> apiResponses = new ArrayList<>();
         for (int i = 0; i < words.size(); i++) {
             String currWord = words.get(i);
             Set<String> synonyms = apiService.callApi(currWord);
             log.info("i: {}, syn: {}", i, synonyms.toString());
-            apiResponses.add(new MappingIdToSyn(i, synonyms));
+            LocationMapping currLoc = new LocationMapping(i, currWord);
+            apiResponses.add(new MappingLocToSyn(currLoc, synonyms));
         }
         return apiResponses;
     }
 
-    private List<MappingSynToId> groupDuplicates(List<MappingIdToSyn> input) {
-        List<MappingSynToId> groupedElems = new ArrayList<>();
-        for (MappingIdToSyn entry : input) {
+    private List<MappingSynToLoc> groupDuplicates(List<MappingLocToSyn> input) {
+        List<MappingSynToLoc> groupedElems = new ArrayList<>();
+        for (MappingLocToSyn entry : input) {
 
-            MappingSynToId match = findCorrespondingTuple(entry, groupedElems);
+            MappingSynToLoc match = findCorrespondingTuple(entry, groupedElems);
 
             if (match == null) {
-                Set<Integer> idSet = new HashSet<>();
-                idSet.add(entry.getId());
+                Set<LocationMapping> idSet = new HashSet<>();
+                idSet.add(entry.getLocationMapping());
 
-                MappingSynToId newGroup = MappingSynToId.builder()
-                        .ids(idSet)
+                MappingSynToLoc newGroup = MappingSynToLoc.builder()
+                        .locationMapping(idSet)
                         .synonyms(entry.getSynonyms())
                         .build();
 
@@ -67,11 +68,11 @@ public class SynonymService {
         return groupedElems;
     }
 
-    private MappingSynToId findCorrespondingTuple(
-            MappingIdToSyn entry,
-            List<MappingSynToId> groupedElems) {
+    private MappingSynToLoc findCorrespondingTuple(
+            MappingLocToSyn entry,
+            List<MappingSynToLoc> groupedElems) {
 
-        for (MappingSynToId groupElem : groupedElems) {
+        for (MappingSynToLoc groupElem : groupedElems) {
             if (setsMatch(groupElem.getSynonyms(), entry.getSynonyms())) {
                 return groupElem;
             }

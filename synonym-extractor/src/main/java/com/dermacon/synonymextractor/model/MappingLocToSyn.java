@@ -9,9 +9,9 @@ import java.util.Set;
 @Getter
 @Setter
 @AllArgsConstructor
-public class MappingIdToSyn {
+public class MappingLocToSyn {
 
-    private int id;
+    private LocationMapping locationMapping;
     private Set<String> synonyms;
 
 }
