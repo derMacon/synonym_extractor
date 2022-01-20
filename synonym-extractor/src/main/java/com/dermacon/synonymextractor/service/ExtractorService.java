@@ -18,7 +18,15 @@ public class ExtractorService {
             out.add(line.split(",")[0]);
         }
         out.remove(0); // remove title
-        return out;
+//        return out;
+
+        List<String> tmp = new ArrayList<>();
+
+        for (int i = 0; i < 3; i++) {
+            tmp.add(out.get(i));
+        }
+
+        return tmp;
     }
 
 }
